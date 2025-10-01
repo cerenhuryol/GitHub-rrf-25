@@ -13,10 +13,10 @@ library(labelled)
 
 # Load the dataset
 data_path <- "C:/Users/ceren/Downloads/GitHub-rrf-25/R/Data"
-data      <- read_dta(file.path(data_path, "Raw/TZA_CCT_baseline.dta"))
+data <- read_dta(file.path(data_path, "Raw/TZA_CCT_baseline.dta"))
 
 ### Remove duplicates based on hhid
-data_dedup <- data %>%
+## data_dedup <- data %>%
     ......
 view(data)
 
@@ -27,7 +27,7 @@ data %>%
     n_distinct()
 
 data_clean <- data %>%
-    distinct(hhid,.keep_all=TRUE)
+    distinct(hhid, .keep_all = TRUE)
 ### Household (HH) level data ----
 
 #### Tidying data for HH level
@@ -49,30 +49,23 @@ data_tidy_hh_member <- data_clean %>%
            starts_with("read"),
            starts_with("clinic visit"),
            starts_with("sick"),
-           starts_with("days sick"),
-           starts_with("treat fin"),
-           starts_with("treat cost"),
-           starts_with("ill impact"),
-           starts_with("days impact")) %>%
+           starts_with("days_sick"),
+           starts_with("treat_fin"),
+           starts_with("treat_cost"),
+           starts_with("ill_impact"),
+           starts_with("days_impact")) %>%
     pivot_longer(cols = -c(vid, hhid, enid),
                  names_to = c(".value", "member"),
                  names_pattern = "(.*)_(\\d+)")
 
 
-library(stringr)
-library(labelled)
 
 data_clean_hh <- data_tidy_hh %>% 
     mutate(submissiondate = as.Date(submissionday, format = "%Y-%m-%d %H:%M:%S")) %>%
-
-    # Convert duration to numeric (if it is not already)
     mutate(duration = as.numeric(duration)) %>%
-    # Convert ar_farm_unit to factor (categorical data)
-    mutate(ar_farm_unit = as.factor(ar_farm_unit)) %>%
-    mutate(ar_unit = na_if(ar_unit,"")) %>%
+    mutate(ar_unit = as.factor(ar_farm_unit)) %>%
+    mutate(ar_unit = na_if(ar_unit, "")) %>%
     mutate(crop_other = str_to_title(crop_other)) %>%
-    
-    # Replace values in the crop variable based on crop_other using regex for new crops
     mutate(crop = case_when(
      str_detect(crop_other, "Coconut") ~ 40,
      str_detect(crop_other, "Sesame") ~ 41, 
@@ -85,7 +78,7 @@ data_clean_hh <- data_tidy_hh %>%
     )
         
         
-        data_clean_hh_member <- data_tidy_hh_member %>%
+ data_clean_hh_member <- data_tidy_hh_member %>%
             filter(!is.na(gender)) %>%
             set_variable_labels(
                 member = "HH member ID",
@@ -137,4 +130,8 @@ secondary_data <- secondary_data %>%
                 names_prefix = ......)
 
 # Save the final tidy secondary data
-write_dta(secondary_data, file.path(data_path, "Intermediate/TZA_amenity_tidy.dta"))
+
+write_dta(data_clean_hh, "Intermediate/TZA_CCT_HH.dta")
+write_dta(data_clean_hh_member, "Intermediate/TZA_CCT_HH_mem.dta")
+write_dta(secondary_data, "Intermediate/TZA_amenity_tidy.dta"))
+
