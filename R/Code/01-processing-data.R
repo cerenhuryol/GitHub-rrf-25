@@ -41,7 +41,6 @@ data_tidy_hh <- data_clean %>%
 ### Data cleaning for Household-member (HH-member) level
 ##data_clean_hh <- data_tidy_hh %>%
     
-    library(tidyr)
 data_tidy_hh_member <- data_clean %>%
     select(vid, hhid, enid,
            starts_with("gender"),
